@@ -17,7 +17,7 @@ jobs:                                        #defining
       - run: npm run build
 
   test:                                     #defining 2nd job
-    needs: build                            #only make since to run on successful build
+    needs: build                            #only make since to run on successful "build" job
     runs-on: ubuntu-latest                   #Define a runner for each job
 
     steps:                                   #steps within our build jobs & then actions we want to happen
@@ -30,4 +30,44 @@ jobs:                                        #defining
       - run: npm install                     #using npm to build my Node.js app
       - run: npm test
 
+  deploy:                                    
+    needs: test                            #only make since to run on successful "test" job
+
+    permissions:                           #is the gatekeeper within Actions; to determine what the workflow is allowed to do; ensuring smooth interaction between the workflow & my Repo 
+      contents: write                      #token is the master key
+      pages: write
+      id-token: write
       
+    environment:                           #need to pinpoint the pre-set env. as our deployment destination
+      name: production
+      url: ${{ steps.deployment.outputs.page_url}}  #snagging the URL from final deployment step
+
+    runs-on: ubuntu-latest                # still using GitHub-hosted runner
+
+    steps:
+      - name: checkout repo                #first need to checkout the repo with authentication by using the checkout action
+        uses: actions/checkout@v4 
+        with:                               # this time I want to go some changes to the repo (WRITE); so I need to authenticate to unlock permissions
+          token: ${{ secrets.GITHUB_TOKEN}} #this is the golden ticket provided by actions for authentication purposes & along with permissions earlier allows the workflow to have all needed access writes to get job done
+      
+      - name: use node.js                   #again setting node env for "deploy" job; as each job run independent need separate env
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          
+      - name: configure github pages         #now config github pages for deployment
+        uses: actions/configure-pages@v4     # Before building the app, I prep it for pages deployment using the configure-pages action
+        with:
+          static_site_generator: next        # will use Next.js static site by specifying it here
+      - run: npm install
+      - run: npm run build
+      
+      - name: upload artifacts                    #and here is a section to upload artifacts to pages (artifact: is the package or collection of files the outcome of the build process ready for share & deployment )
+        uses: actions/upload-pages-arifacts@v3    #using this action to wrap up the static site created by Next.js
+        with:                                     #the action "upload-pages-arifacts" sends the artifact to Pages for deployment
+          path: './out'                           #we point the action to the right place by specifying path out
+          
+      - name: deploy                              #here we deploy our app to Pages lastly 
+        id: deployment
+        uses: actions/deploy-pages@v4             #this action do the heavy lifting
+        
