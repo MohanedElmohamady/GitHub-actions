@@ -63,7 +63,7 @@ jobs:                                        #defining
       - run: npm run build
       
       - name: upload artifacts                    #and here is a section to upload artifacts to pages (artifact: is the package or collection of files the outcome of the build process ready for share & deployment )
-        uses: actions/upload-pages-arifacts@v3    #using this action to wrap up the static site created by Next.js
+        uses: actions/upload-pages-arifact@v3    #using this action to wrap up the static site created by Next.js
         with:                                     #the action "upload-pages-arifacts" sends the artifact to Pages for deployment
           path: './out'                           #we point the action to the right place by specifying path out
           
