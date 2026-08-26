@@ -3,7 +3,7 @@ name: build-test-deploy                     #workflow name
 on: push                                    # event trigger
 
 jobs:                                        #defining 
-  build:                                     #defining first job
+  build:                                     # defining the first job
     runs-on: ubuntu-latest                   #Define a runner for each job
 
     steps:                                   #steps within our build jobs & then actions we want to happen
@@ -15,3 +15,19 @@ jobs:                                        #defining
           node-version: '20.x'               #To define the specific version of Node.js using "with value"
       - run: npm install                     #using npm to build my Node.js app
       - run: npm run build
+
+  test:                                     #defining 2nd job
+    needs: build                            #only make since to run on successful build
+    runs-on: ubuntu-latest                   #Define a runner for each job
+
+    steps:                                   #steps within our build jobs & then actions we want to happen
+      - name: checkout repo                  #checkout action retrieves the repository's code & allows the workflow to access the repository's content 
+        uses: actions/checkout@v4            #now, with uses defining the action itself
+      - name: use node.js                    #as the build tool I am using in Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'               #To define the specific version of Node.js using "with value"
+      - run: npm install                     #using npm to build my Node.js app
+      - run: npm test
+
+      
